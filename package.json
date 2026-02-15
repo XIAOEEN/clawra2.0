@@ -1,7 +1,7 @@
 {
   "name": "clawra",
   "version": "1.1.1",
-  "description": "Add selfie superpowers to your OpenClaw agent using VVEAI API",
+  "description": "🎭 AI-powered personalized portrait generator based on Chinese astrology (Bazi) & MBTI. Create unique selfie avatars for your OpenClaw agent. 基于八字命理和MBTI的AI个性化画像生成器",
   "bin": {
     "clawra": "./bin/cli.js"
   },
