@@ -170,7 +170,7 @@ ${c("magenta", "│")}  ${c("bright", "Clawra Selfie")} - OpenClaw Skill Install
 ${c("magenta", "└─────────────────────────────────────────┘")}
 
 Add selfie generation superpowers to your OpenClaw agent!
-Uses ${c("cyan", "xAI Grok Imagine")} via ${c("cyan", "fal.ai")} for image editing.
+Uses ${c("cyan", "VVEAI API")} with model ${c("cyan", "doubao-seedream-4-5-251128")}.
 `);
 }
 
@@ -207,40 +207,27 @@ async function checkPrerequisites() {
   return true;
 }
 
-// Get FAL API key
-async function getFalApiKey(rl) {
-  logStep("2/7", "Setting up fal.ai API key...");
+// Get VVEAI API key (required)
+async function getVveaiApiKey(rl) {
+  logStep("2/7", "Setting up VVEAI API key...");
 
-  const FAL_URL = "https://fal.ai/dashboard/keys";
+  log(`\nClawra uses VVEAI API for image generation.`);
+  log(`You need to provide your VVEAI API key.\n`);
 
-  log(`\nTo use Grok Imagine, you need a fal.ai API key.`);
-  log(`${c("cyan", "→")} Get your key from: ${c("bright", FAL_URL)}\n`);
+  const apiKey = await ask(rl, "Enter your VVEAI_API_KEY: ");
 
-  const openIt = await ask(rl, "Open fal.ai in browser? (Y/n): ");
-
-  if (openIt.toLowerCase() !== "n") {
-    logInfo("Opening browser...");
-    if (!openBrowser(FAL_URL)) {
-      logWarn("Could not open browser automatically");
-      logInfo(`Please visit: ${FAL_URL}`);
-    }
-  }
-
-  log("");
-  const falKey = await ask(rl, "Enter your FAL_KEY: ");
-
-  if (!falKey) {
-    logError("FAL_KEY is required!");
+  if (!apiKey) {
+    logError("VVEAI_API_KEY is required!");
     return null;
   }
 
   // Basic validation
-  if (falKey.length < 10) {
+  if (apiKey.length < 10) {
     logWarn("That key looks too short. Make sure you copied the full key.");
   }
 
   logSuccess("API key received");
-  return falKey;
+  return apiKey;
 }
 
 // Install skill files
@@ -287,7 +274,7 @@ async function installSkill() {
 }
 
 // Update OpenClaw config
-async function updateOpenClawConfig(falKey) {
+async function updateOpenClawConfig(apiKey) {
   logStep("4/7", "Updating OpenClaw configuration...");
 
   let config = readJsonFile(OPENCLAW_CONFIG) || {};
@@ -298,9 +285,8 @@ async function updateOpenClawConfig(falKey) {
       entries: {
         [SKILL_NAME]: {
           enabled: true,
-          apiKey: falKey,
           env: {
-            FAL_KEY: falKey,
+            VVEAI_API_KEY: apiKey,
           },
         },
       },
@@ -442,6 +428,10 @@ ${c("yellow", "Try saying to your agent:")}
   "Send a pic wearing a cowboy hat"
   "What are you doing right now?"
 
+${c("magenta", "Personalized Portrait:")}
+  Generate based on birth date & MBTI:
+  npx clawra generate-portrait --help
+
 ${c("dim", "Your agent now has selfie superpowers!")}
 `);
 }
@@ -485,9 +475,9 @@ async function main() {
       }
     }
 
-    // Step 2: Get FAL API key
-    const falKey = await getFalApiKey(rl);
-    if (!falKey) {
+    // Step 2: Get VVEAI API key (required)
+    const vveaiApiKey = await getVveaiApiKey(rl);
+    if (!vveaiApiKey) {
       rl.close();
       process.exit(1);
     }
@@ -496,7 +486,7 @@ async function main() {
     await installSkill();
 
     // Step 4: Update OpenClaw config
-    await updateOpenClawConfig(falKey);
+    await updateOpenClawConfig(vveaiApiKey);
 
     // Step 5: Write IDENTITY.md
     await writeIdentity();
@@ -505,6 +495,14 @@ async function main() {
     await injectPersona(rl);
 
     // Step 7: Summary
+    // Step 7: Optional - Generate personalized portrait
+    const generatePortrait = await ask(rl, "\nWould you like to generate a personalized portrait based on your birth date and MBTI? (y/N): ");
+    
+    if (generatePortrait.toLowerCase() === "y") {
+      await collectUserProfile(rl);
+    }
+
+    // Step 8: Summary
     printSummary();
 
     rl.close();
@@ -513,6 +511,108 @@ async function main() {
     console.error(error);
     rl.close();
     process.exit(1);
+  }
+}
+
+// Collect user profile information
+async function collectUserProfile(rl) {
+  logStep("7/8", "Setting up personalized portrait...");
+  
+  log(`\nThis feature generates a unique reference image based on:`);
+  log(`  • Birth date (八字/Chinese astrology)`);
+  log(`  • MBTI personality type`);
+  log(`  • Gender`);
+  log(`${c("cyan", "→")} Your portrait will be used as the base for all selfies.\n`);
+  
+  // Collect birth date
+  logInfo("Birth Date Information");
+  const birthYear = await ask(rl, "Enter birth year (e.g., 2000): ");
+  const birthMonth = await ask(rl, "Enter birth month (1-12): ");
+  const birthDay = await ask(rl, "Enter birth day (1-31): ");
+  
+  // Collect gender
+  log("");
+  logInfo("Gender");
+  const sex = await ask(rl, "Enter gender (male/female): ");
+  
+  // Collect MBTI (optional)
+  log("");
+  logInfo("MBTI Type (optional)");
+  log("Available: INTJ, INTP, ENTJ, ENTP, INFJ, INFP, ENFJ, ENFP,");
+  log("           ISTJ, ISFJ, ESTJ, ESFJ, ISTP, ISFP, ESTP, ESFP");
+  const mbti = await ask(rl, "Enter MBTI type (or press Enter to skip): ");
+  
+  // Collect name (optional)
+  log("");
+  const name = await ask(rl, "Enter your name (optional): ");
+  
+  // Save user profile
+  const userProfile = {
+    birthDate: {
+      year: parseInt(birthYear) || 2000,
+      month: parseInt(birthMonth) || 1,
+      day: parseInt(birthDay) || 1
+    },
+    sex: sex.toLowerCase() === "male" ? "male" : "female",
+    mbti: mbti ? mbti.toUpperCase() : undefined,
+    name: name || undefined
+  };
+  
+  // Save to config
+  const configPath = path.join(OPENCLAW_DIR, "openclaw.json");
+  let config = {};
+  if (fs.existsSync(configPath)) {
+    config = JSON.parse(fs.readFileSync(configPath, "utf-8"));
+  }
+  
+  if (!config.skills) config.skills = {};
+  if (!config.skills.entries) config.skills.entries = {};
+  if (!config.skills.entries[SKILL_NAME]) config.skills.entries[SKILL_NAME] = {};
+  if (!config.skills.entries[SKILL_NAME].env) config.skills.entries[SKILL_NAME].env = {};
+  
+  config.skills.entries[SKILL_NAME].userProfile = userProfile;
+  
+  fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+  
+  logSuccess("User profile saved");
+  
+  // Ask if they want to generate now
+  const generateNow = await ask(rl, "\nGenerate portrait now? (Y/n): ");
+  
+  if (generateNow.toLowerCase() !== "n") {
+    logInfo("Generating portrait... (this may take a minute)");
+    
+    try {
+      // Check if dependencies are installed
+      const packageRoot = path.resolve(__dirname, "..");
+      if (!fs.existsSync(path.join(packageRoot, "node_modules"))) {
+        logInfo("Installing dependencies...");
+        execSync("npm install", { 
+          cwd: packageRoot, 
+          stdio: "inherit" 
+        });
+      }
+      
+      // Build command
+      let cmd = `npx ts-node src/index.ts`;
+      cmd += ` --birth-year ${userProfile.birthDate.year}`;
+      cmd += ` --birth-month ${userProfile.birthDate.month}`;
+      cmd += ` --birth-day ${userProfile.birthDate.day}`;
+      cmd += ` --sex ${userProfile.sex}`;
+      if (userProfile.mbti) cmd += ` --mbti ${userProfile.mbti}`;
+      if (userProfile.name) cmd += ` --name "${userProfile.name}"`;
+      
+      execSync(cmd, { 
+        cwd: packageRoot, 
+        stdio: "inherit" 
+      });
+      
+      logSuccess("Portrait generated successfully!");
+    } catch (error) {
+      logWarn("Could not generate portrait automatically");
+      logInfo("You can generate it later by running:");
+      log(`  npx clawra generate-portrait --birth-year ${userProfile.birthDate.year} --birth-month ${userProfile.birthDate.month} --birth-day ${userProfile.birthDate.day} --sex ${userProfile.sex}${userProfile.mbti ? ` --mbti ${userProfile.mbti}` : ""}`);
+    }
   }
 }
 

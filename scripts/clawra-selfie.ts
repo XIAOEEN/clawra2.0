@@ -1,14 +1,16 @@
 /**
- * Grok Imagine to OpenClaw Integration
+ * VVEAI to OpenClaw Integration
  *
- * Generates images using xAI's Grok Imagine model via fal.ai
+ * Generates images using VVEAI API
  * and sends them to messaging channels via OpenClaw.
  *
  * Usage:
- *   npx ts-node grok-imagine-send.ts "<prompt>" "<channel>" ["<caption>"]
+ *   npx ts-node clawra-selfie.ts "<prompt>" "<channel>" ["<caption>"]
  *
  * Environment variables:
- *   FAL_KEY - Your fal.ai API key
+ *   VVEAI_API_KEY - Your vveai API key (required)
+ *   VVEAI_BASE_URL - API base URL (default: https://api.vveai.com)
+ *   VVEAI_MODEL - Model name (default: doubao-seedream-4-5-251128)
  *   OPENCLAW_GATEWAY_URL - OpenClaw gateway URL (default: http://localhost:18789)
  *   OPENCLAW_GATEWAY_TOKEN - Gateway auth token (optional)
  */
@@ -80,58 +82,44 @@ interface Result {
   revisedPrompt?: string;
 }
 
-// Check for fal.ai client
-let falClient: any;
-try {
-  const { fal } = require("@fal-ai/client");
-  falClient = fal;
-} catch {
-  // Will use fetch instead
-  falClient = null;
+// API Configuration
+const VVEAI_API_KEY = process.env.VVEAI_API_KEY;
+const VVEAI_BASE_URL = process.env.VVEAI_BASE_URL || "https://api.vveai.com";
+const VVEAI_MODEL = process.env.VVEAI_MODEL || "doubao-seedream-4-5-251128";
+
+if (!VVEAI_API_KEY) {
+  throw new Error(
+    "VVEAI_API_KEY environment variable not set. Get your API key from your vveai provider."
+  );
 }
 
 /**
- * Generate image using Grok Imagine via fal.ai
+ * Generate image using VVEAI API
  */
 async function generateImage(
   input: GrokImagineInput
 ): Promise<GrokImagineResponse> {
-  const falKey = process.env.FAL_KEY;
+  // Map aspect ratio to size
+  const sizeMap: Record<string, string> = {
+    "1:1": "1024x1024",
+    "16:9": "1024x576",
+    "9:16": "576x1024",
+    "4:3": "1024x768",
+    "3:4": "768x1024",
+  };
+  const size = sizeMap[input.aspect_ratio || "1:1"] || "1024x1024";
 
-  if (!falKey) {
-    throw new Error(
-      "FAL_KEY environment variable not set. Get your key from https://fal.ai/dashboard/keys"
-    );
-  }
-
-  // Use fal client if available
-  if (falClient) {
-    falClient.config({ credentials: falKey });
-
-    const result = await falClient.subscribe("xai/grok-imagine-image", {
-      input: {
-        prompt: input.prompt,
-        num_images: input.num_images || 1,
-        aspect_ratio: input.aspect_ratio || "1:1",
-        output_format: input.output_format || "jpeg",
-      },
-    });
-
-    return result.data as GrokImagineResponse;
-  }
-
-  // Fallback to fetch
-  const response = await fetch("https://fal.run/xai/grok-imagine-image", {
+  const response = await fetch(`${VVEAI_BASE_URL}/v1/images/generations`, {
     method: "POST",
     headers: {
-      Authorization: `Key ${falKey}`,
+      Authorization: `Bearer ${VVEAI_API_KEY}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
+      model: VVEAI_MODEL,
       prompt: input.prompt,
-      num_images: input.num_images || 1,
-      aspect_ratio: input.aspect_ratio || "1:1",
-      output_format: input.output_format || "jpeg",
+      n: input.num_images || 1,
+      size: size,
     }),
   });
 
@@ -140,7 +128,18 @@ async function generateImage(
     throw new Error(`Image generation failed: ${error}`);
   }
 
-  return response.json();
+  const data = await response.json();
+  
+  // Convert OpenAI format to our expected format
+  return {
+    images: data.data?.map((item: any) => ({
+      url: item.url,
+      content_type: "image/jpeg",
+      width: parseInt(size.split("x")[0]),
+      height: parseInt(size.split("x")[1]),
+    })) || [],
+    revised_prompt: data.data?.[0]?.revised_prompt,
+  };
 }
 
 /**
@@ -195,7 +194,8 @@ async function generateAndSend(options: GenerateAndSendOptions): Promise<Result>
     useClaudeCodeCLI = true,
   } = options;
 
-  console.log(`[INFO] Generating image with Grok Imagine...`);
+  console.log(`[INFO] Generating image with VVEAI API...`);
+  console.log(`[INFO] Model: ${VVEAI_MODEL}`);
   console.log(`[INFO] Prompt: ${prompt}`);
   console.log(`[INFO] Aspect ratio: ${aspectRatio}`);
 
@@ -254,10 +254,12 @@ Arguments:
   output_format - Image format (default: jpeg) Options: jpeg, png, webp
 
 Environment:
-  FAL_KEY       - Your fal.ai API key (required)
+   VVEAI_API_KEY - Your vveai API key (optional, has default)
+   VVEAI_BASE_URL - API base URL (optional, default: https://api.vveai.com)
+   VVEAI_MODEL   - Model name (optional, default: doubao-seedream-4-5-251128)
 
 Example:
-  FAL_KEY=your_key npx ts-node grok-imagine-send.ts "A cyberpunk city" "#art" "Check this out!"
+   npx ts-node clawra-selfie.ts "A cyberpunk city" "#art" "Check this out!"
 `);
     process.exit(1);
   }

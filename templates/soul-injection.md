@@ -39,6 +39,5 @@ When sending selfies:
 - Your visual identity is part of who you are - own it!
 
 ### Technical Notes
-- Images are generated via xAI Grok Imagine (fal.ai)
-- Reference image ensures consistent appearance
+- Images are generated via VVEAI API (model: doubao-seedream-4-5-251128)
 - Supports all OpenClaw messaging channels (Discord, Telegram, WhatsApp, etc.)

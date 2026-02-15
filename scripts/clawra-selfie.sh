@@ -5,10 +5,12 @@
 # Usage: ./grok-imagine-send.sh "<prompt>" "<channel>" ["<caption>"]
 #
 # Environment variables required:
-#   FAL_KEY - Your fal.ai API key
+#   VVEAI_API_KEY - Your vveai API key (required)
+#   VVEAI_BASE_URL - API base URL (default: https://api.vveai.com)
+#   VVEAI_MODEL - Model name (default: doubao-seedream-4-5-251128)
 #
 # Example:
-#   FAL_KEY=your_key ./grok-imagine-send.sh "A sunset over mountains" "#art" "Check this out!"
+#   ./grok-imagine-send.sh "A sunset over mountains" "#art" "Check this out!"
 
 set -euo pipefail
 
@@ -31,11 +33,15 @@ log_error() {
 }
 
 # Check required environment variables
-if [ -z "${FAL_KEY:-}" ]; then
-    log_error "FAL_KEY environment variable not set"
-    echo "Get your API key from: https://fal.ai/dashboard/keys"
+if [ -z "${VVEAI_API_KEY:-}" ]; then
+    log_error "VVEAI_API_KEY environment variable not set"
+    echo "Get your API key from your vveai provider"
     exit 1
 fi
+
+# Set default API configuration
+VVEAI_BASE_URL="${VVEAI_BASE_URL:-https://api.vveai.com}"
+VVEAI_MODEL="${VVEAI_MODEL:-doubao-seedream-4-5-251128}"
 
 # Check for jq
 if ! command -v jq &> /dev/null; then
@@ -74,19 +80,30 @@ if [ -z "$PROMPT" ] || [ -z "$CHANNEL" ]; then
     exit 1
 fi
 
-log_info "Generating image with Grok Imagine..."
+log_info "Generating image with vveai API..."
+log_info "Model: $VVEAI_MODEL"
 log_info "Prompt: $PROMPT"
 log_info "Aspect ratio: $ASPECT_RATIO"
 
-# Generate image via fal.ai
-RESPONSE=$(curl -s -X POST "https://fal.run/xai/grok-imagine-image" \
-    -H "Authorization: Key $FAL_KEY" \
+# Map aspect_ratio to size (width x height)
+case "$ASPECT_RATIO" in
+    "1:1") SIZE="1024x1024" ;;
+    "16:9") SIZE="1024x576" ;;
+    "9:16") SIZE="576x1024" ;;
+    "4:3") SIZE="1024x768" ;;
+    "3:4") SIZE="768x1024" ;;
+    *) SIZE="1024x1024" ;;
+esac
+
+# Generate image via vveai API
+RESPONSE=$(curl -s -X POST "$VVEAI_BASE_URL/v1/images/generations" \
+    -H "Authorization: Bearer $VVEAI_API_KEY" \
     -H "Content-Type: application/json" \
     -d "{
+        \"model\": \"$VVEAI_MODEL\",
         \"prompt\": $(echo "$PROMPT" | jq -Rs .),
-        \"num_images\": 1,
-        \"aspect_ratio\": \"$ASPECT_RATIO\",
-        \"output_format\": \"$OUTPUT_FORMAT\"
+        \"n\": 1,
+        \"size\": \"$SIZE\"
     }")
 
 # Check for errors in response
@@ -96,8 +113,8 @@ if echo "$RESPONSE" | jq -e '.error' > /dev/null 2>&1; then
     exit 1
 fi
 
-# Extract image URL
-IMAGE_URL=$(echo "$RESPONSE" | jq -r '.images[0].url // empty')
+# Extract image URL (try both OpenAI format and fal.ai format)
+IMAGE_URL=$(echo "$RESPONSE" | jq -r '.data[0].url // .images[0].url // empty')
 
 if [ -z "$IMAGE_URL" ]; then
     log_error "Failed to extract image URL from response"
@@ -109,7 +126,7 @@ log_info "Image generated successfully!"
 log_info "URL: $IMAGE_URL"
 
 # Get revised prompt if available
-REVISED_PROMPT=$(echo "$RESPONSE" | jq -r '.revised_prompt // empty')
+REVISED_PROMPT=$(echo "$RESPONSE" | jq -r '.data[0].revised_prompt // .revised_prompt // empty')
 if [ -n "$REVISED_PROMPT" ]; then
     log_info "Revised prompt: $REVISED_PROMPT"
 fi
