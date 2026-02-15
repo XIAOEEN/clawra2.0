@@ -1,10 +1,6 @@
 # Clawra 2.0 🎭
 
 <p align="center">
-  <img width="300" alt="Clawra" src="https://github.com/user-attachments/assets/41512c51-e61d-4550-b461-eed06a1b0ec8" />
-</p>
-
-<p align="center">
   <strong>English</strong> | <a href="#中文介绍">中文</a>
 </p>
 
