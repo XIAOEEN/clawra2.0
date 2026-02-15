@@ -1,121 +1,38 @@
-# Clawra
-<img width="300"  alt="image" src="https://github.com/user-attachments/assets/41512c51-e61d-4550-b461-eed06a1b0ec8" />
+# Clawra 2.0 🎭
 
+<p align="center">
+  <img width="300" alt="Clawra" src="https://github.com/user-attachments/assets/41512c51-e61d-4550-b461-eed06a1b0ec8" />
+</p>
 
-## Quick Start
+<p align="center">
+  <strong>English</strong> | <a href="#中文介绍">中文</a>
+</p>
 
-```bash
-npx clawra@latest
-```
+---
 
-This will:
-1. Check OpenClaw is installed
-2. Prompt for your VVEAI API key
-3. Install the skill to `~/.openclaw/skills/clawra-selfie/`
-4. Configure OpenClaw to use the skill
-5. Add selfie capabilities to your agent's SOUL.md
+## English
 
-## What It Does
+Clawra 2.0 is an AI-powered selfie generation skill for OpenClaw agents. It creates personalized portraits based on Chinese astrology (Bazi) and MBTI personality types, enabling your AI agent to have a unique visual identity.
 
-Clawra Selfie enables your OpenClaw agent to:
-- **Generate selfies** using VVEAI API
-- **Send photos** across all messaging platforms (Discord, Telegram, WhatsApp, etc.)
-- **Respond visually** to "what are you doing?" and "send a pic" requests
-- **Generate personalized portraits** based on birth date and MBTI personality type
+### ✨ Features
 
-### API Configuration
+- **🎨 Personalized Portrait Generation**: Creates unique reference images based on birth date and MBTI
+- **🔮 Chinese Astrology Integration**: Calculates Bazi (八字) and Five Elements (五行) to determine facial features
+- **🧠 MBTI Personality Mapping**: 16 personality types influence expression and vibe
+- **📸 Smart Selfie Modes**: Mirror selfies for outfits, direct selfies for portraits
+- **💬 Multi-Platform Messaging**: Send selfies to Discord, Telegram, WhatsApp, Slack, etc.
 
-The skill uses VVEAI API. You need to set your API key:
-- **Base URL**: `https://api.vveai.com` (default)
-- **Model**: `doubao-seedream-4-5-251128` (default)
-
-**Required**: Set `VVEAI_API_KEY` environment variable with your API key.
-
-### Personalized Portrait Generation 🎨
-
-Clawra can generate a unique reference image based on your personal attributes:
-
-- **Birth Date** → Calculates 八字 (Chinese astrology) and 五行 (Five Elements)
-- **MBTI Type** → Adds personality-based expression and vibe
-- **Gender** → Customizes hairstyle and facial features
-
-Each element (金/木/水/火/土) maps to specific facial features:
-- **Eyes, Hairstyle** → Determined by dominant element
-- **Face shape, Nose** → Determined by secondary element  
-- **Eyebrows, Lips, Ears** → Determined by tertiary element
-
-## Prerequisites
-
-- [OpenClaw](https://github.com/openclaw/openclaw) installed and configured
-
-## Manual Installation
-
-If you prefer manual setup:
-
-### 1. Clone the Skill
+### 🚀 Quick Start
 
 ```bash
-git clone https://github.com/SumeLabs/clawra ~/.openclaw/skills/clawra-selfie
+npx clawra2.0@latest
 ```
 
-### 2. Configure OpenClaw
-
-Add to `~/.openclaw/openclaw.json`:
-
-```json
-{
-  "skills": {
-    "entries": {
-      "clawra-selfie": {
-        "enabled": true,
-        "env": {
-          "VVEAI_API_KEY": "your_api_key_here"
-        }
-      }
-    }
-  }
-}
-```
-
-Optional: Override other API configurations via environment variables:
-```bash
-export VVEAI_BASE_URL="https://api.custom.com"
-export VVEAI_MODEL="custom-model"
-```
-
-### 4. Update SOUL.md
-
-Add the selfie persona to `~/.openclaw/workspace/SOUL.md`:
-
-```markdown
-## Clawra Selfie Capability
-
-You have a physical appearance and can take selfies!
-When users ask for pictures, use the clawra-selfie skill.
-```
-
-## Usage Examples
-
-Once installed, your agent responds to:
-
-```
-"Send me a selfie"
-"Send a pic wearing a cowboy hat"
-"What are you doing right now?"
-"Show me you at a coffee shop"
-```
-
-### Generate Personalized Portrait
-
-**Option 1: During Installation**
-
-The installer will ask if you want to generate a personalized portrait.
-
-**Option 2: Command Line**
+### 🎭 Generate Your Personalized Portrait
 
 ```bash
-# Generate portrait with birth date and MBTI
-npx clawra generate-portrait \
+# Using npx
+npx clawra2.0 generate-portrait \
   --birth-year 2000 \
   --birth-month 5 \
   --birth-day 15 \
@@ -123,8 +40,8 @@ npx clawra generate-portrait \
   --mbti INFP \
   --name Alice
 
-# Or use the script directly
-./scripts/generate-portrait.sh \
+# Or npm script
+npm run generate-portrait -- \
   --birth-year 2000 \
   --birth-month 5 \
   --birth-day 15 \
@@ -132,72 +49,176 @@ npx clawra generate-portrait \
   --mbti INFP
 ```
 
-**Parameters:**
-- `--birth-year`: Birth year (e.g., 2000)
-- `--birth-month`: Birth month (1-12)
-- `--birth-day`: Birth day (1-31)
-- `--sex`: Gender (male/female)
-- `--mbti`: MBTI type (e.g., INTJ, ENFP) - optional
-- `--name`: Your name - optional
-- `--age`: Generated age (default: 22) - optional
+### 📋 How It Works
 
-**Available MBTI Types:**
-- **Analysts**: INTJ, INTP, ENTJ, ENTP
-- **Diplomats**: INFJ, INFP, ENFJ, ENFP
-- **Sentinels**: ISTJ, ISFJ, ESTJ, ESFJ
-- **Explorers**: ISTP, ISFP, ESTP, ESFP
+1. **Birth Date** → Calculates Bazi (八字) and determines Five Elements distribution
+2. **Five Elements Mapping** → Maps elements to facial features:
+   - Dominant element → Eyes, Hairstyle
+   - Secondary element → Face shape, Nose
+   - Tertiary element → Eyebrows, Lips, Ears
+3. **MBTI Influence** → Adds personality-based expression and vibe
+4. **AI Generation** → Creates unique portrait using VVEAI API
 
-## Reference Image
+### 🎯 Five Elements Facial Features
 
-By default, the skill uses a fixed reference image hosted on CDN:
+| Element | Eyes | Face Shape | Nose | Hairstyle (Female) |
+|---------|------|------------|------|-------------------|
+| **Metal (金)** | Sharp, narrow | Angular, defined | High, straight | Short, chic |
+| **Wood (木)** | Long, clear | Oval, graceful | High, curved | Long, straight |
+| **Water (水)** | Round, full | Round, youthful | Low, rounded | Waves, long |
+| **Fire (火)** | Big, bright | Diamond-shaped | High, short | Bold, curly |
+| **Earth (土)** | Square, steady | Square, reliable | Wide, flat | Bun, ponytail |
 
+### 🔧 Configuration
+
+```bash
+# Required
+export VVEAI_API_KEY="your-api-key"
+
+# Optional
+export VVEAI_BASE_URL="https://api.vveai.com"
+export VVEAI_MODEL="doubao-seedream-4-5-251128"
 ```
-https://cdn.jsdelivr.net/gh/SumeLabs/clawra@main/assets/clawra.png
+
+---
+
+<p align="center">
+  <a href="#english">English</a> | <strong>中文</strong>
+</p>
+
+---
+
+## 中文介绍
+
+Clawra 2.0 是一个为 OpenClaw AI 代理设计的智能自拍生成技能。它基于中国八字命理和 MBTI 人格类型创建个性化画像，让你的 AI 助手拥有独特的视觉形象。
+
+### ✨ 功能特性
+
+- **🎨 个性化画像生成**: 根据出生日期和 MBTI 生成独特的参考图片
+- **🔮 八字命理融合**: 计算八字和五行来决定面部特征
+- **🧠 MBTI 人格映射**: 16种人格类型影响表情和气质
+- **📸 智能自拍模式**: 镜子自拍展示穿搭，直拍模式展示肖像
+- **💬 多平台消息**: 发送自拍照到 Discord、Telegram、WhatsApp、Slack 等平台
+
+### 🚀 快速开始
+
+```bash
+npx clawra2.0@latest
 ```
 
-### Personalized Reference Image
+### 🎭 生成你的个性化画像
 
-You can generate a **personalized reference image** based on your birth date and MBTI type. This image will:
-- Reflect your 八字 (Chinese astrological) characteristics
-- Match your MBTI personality expression
-- Be used as the base for all your selfies
+```bash
+# 使用 npx
+npx clawra2.0 generate-portrait \
+  --birth-year 2000 \
+  --birth-month 5 \
+  --birth-day 15 \
+  --sex female \
+  --mbti INFP \
+  --name 爱丽丝
 
-To generate your personalized portrait, see [Generate Personalized Portrait](#generate-personalized-portrait) section above.
+# 或使用 npm 脚本
+npm run generate-portrait -- \
+  --birth-year 2000 \
+  --birth-month 5 \
+  --birth-day 15 \
+  --sex female \
+  --mbti INFP
+```
 
-## Technical Details
+### 📋 工作原理
 
-- **Image Generation**: VVEAI API (model: doubao-seedream-4-5-251128)
-- **Messaging**: OpenClaw Gateway API
-- **Personalized Portraits**: Based on Chinese astrology (八字) and MBTI
-- **Supported Platforms**: Discord, Telegram, WhatsApp, Slack, Signal, MS Teams
+1. **出生日期** → 计算八字，确定五行分布
+2. **五行映射** → 将五行映射到面部特征：
+   - 主元素 → 眼睛、发型
+   - 次元素 → 脸型、鼻子
+   - 第三元素 → 眉毛、嘴唇、耳朵
+3. **MBTI 影响** → 添加基于人格类型的表情和气质
+4. **AI 生成** → 使用 VVEAI API 创建独特画像
 
-## Project Structure
+### 🎯 五行面部特征对照表
+
+| 五行 | 眼睛 | 脸型 | 鼻子 | 发型（女） |
+|------|------|------|------|-----------|
+| **金** | 狭长锐利 | 棱角分明 | 高挺笔直 | 齐耳短发 |
+| **木** | 修长清澈 | 鹅蛋脸 | 高而微弯 | 黑长直 |
+| **水** | 圆润饱满 | 娃娃脸 | 低平圆钝 | 大波浪 |
+| **火** | 大而明亮 | 菱形脸 | 高而短 | 夸张烫发 |
+| **土** | 偏方稳重 | 方圆脸 | 宽厚方正 | 低盘发 |
+
+### 🧬 MBTI 气质对照
+
+| MBTI 类型 | 表情特征 | 整体气质 |
+|-----------|----------|----------|
+| INTJ | 深邃冷静，眼神锐利 | 知性高冷，神秘感 |
+| INFP | 梦幻朦胧，眼神柔和 | 文艺清新，诗意感 |
+| ENFP | 灿烂明媚，月牙眼 | 元气满满，快乐小狗 |
+| ESTP | 玩世不恭，眼神挑衅 | 痞帅/辣妹，野性美 |
+| ISTJ | 稳重内敛，眼神务实 | 可靠踏实，禁欲系 |
+| ESFJ | 热情友好，眼神温暖 | 社交达人，亲和力强 |
+
+### 🔧 配置说明
+
+```bash
+# 必需
+export VVEAI_API_KEY="你的API密钥"
+
+# 可选
+export VVEAI_BASE_URL="https://api.vveai.com"
+export VVEAI_MODEL="doubao-seedream-4-5-251128"
+```
+
+### 📁 项目结构
 
 ```
 clawra/
 ├── bin/
-│   └── cli.js              # npx installer
+│   └── cli.js              # CLI 安装器
 ├── src/
 │   ├── config/
-│   │   └── wuxing_features.json  # Five Elements facial feature mappings
+│   │   └── wuxing_features.json  # 五行特征映射
 │   ├── generators/
-│   │   ├── portrait_generator.ts # User portrait generator
-│   │   └── image_generator.ts    # VVEAI API client
+│   │   ├── portrait_generator.ts # 画像生成器
+│   │   └── image_generator.ts    # VVEAI API 客户端
 │   ├── utils/
-│   │   └── bazi_calculator.ts    # Chinese astrology calculator
-│   └── index.ts            # Main entry point
-├── skill/
-│   ├── SKILL.md            # Skill definition
-│   ├── scripts/            # Generation scripts
-│   └── assets/             # Reference image
-├── templates/
-│   └── soul-injection.md   # Persona template
-├── scripts/
-│   └── generate-portrait.sh # Portrait generation script
-├── package.json
-└── tsconfig.json
+│   │   └── bazi_calculator.ts    # 八字计算器
+│   └── index.ts            # 主入口
+├── skill/                  # OpenClaw 技能
+├── scripts/                # 辅助脚本
+├── README.md
+└── package.json
 ```
 
-## License
+### 💡 使用示例
 
-MIT
+安装完成后，你的 AI 代理可以响应：
+
+```
+"给我发自拍"
+"Send me a selfie"
+"穿牛仔帽拍一张"
+"你现在在做什么？"
+"展示你在咖啡店的样子"
+```
+
+### 🔑 API 配置
+
+默认使用 VVEAI API：
+- **基础URL**: `https://api.vveai.com`
+- **模型**: `doubao-seedream-4-5-251128`
+
+需要在环境变量中设置 `VVEAI_API_KEY`。
+
+---
+
+## License / 许可证
+
+MIT © [XIAOEEN](https://github.com/XIAOEEN)
+
+---
+
+<p align="center">
+  Made with ❤️ and ☯️
+</p>
+</content>
